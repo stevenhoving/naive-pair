@@ -27,6 +27,8 @@
 
 #pragma once
 
+#define ENABLE_DEFAULT_IMPLEMENTATION 1
+
 template<class KeyType, class ValueType>
 struct Pair
 {
@@ -53,40 +55,57 @@ struct Pair
     {}
 
     // copy
+#if ENABLE_DEFAULT_IMPLEMENTATION
     constexpr Pair(const Pair<KeyType, ValueType>& pair) noexcept = default;
-    //constexpr Pair(const Pair<KeyType, ValueType>& pair) noexcept
-    //    : first(pair.first)
-    //    , second(pair.second)
-    //{}
+#else
+    constexpr Pair(const Pair<KeyType, ValueType>& pair) noexcept
+        : first(pair.first)
+        , second(pair.second)
+    {}
+#endif
 
     // copy assignment
+#if ENABLE_DEFAULT_IMPLEMENTATION
     constexpr Pair<KeyType, ValueType> &operator = (const Pair<KeyType, ValueType>& pair) noexcept = default;
-    //constexpr Pair<KeyType, ValueType> &operator = (const Pair<KeyType, ValueType>& pair) noexcept
-    //{
-    //    first = pair.first;
-    //    second = pair.second;
-    //    return *this;
-    //}
+#else
+    constexpr Pair<KeyType, ValueType> &operator = (const Pair<KeyType, ValueType>& pair) noexcept
+    {
+        first = pair.first;
+        second = pair.second;
+        return *this;
+    }
+#endif
 
     // move
+#if ENABLE_DEFAULT_IMPLEMENTATION
     constexpr Pair(Pair<KeyType, ValueType>&& pair) noexcept = default;
+#else
     //constexpr Pair(Pair<KeyType, ValueType>&& pair) noexcept
-    //    : first(std::forward<KeyType>(pair.first))
-    //    , second(std::forward<ValueType>(pair.second))
-    //{
-    //}
+    template<typename T1, typename T2>
+    constexpr Pair(Pair<T1, T2>&& pair) noexcept
+        : first(std::forward<T1>(pair.first))
+        , second(std::forward<T2>(pair.second))
+    {
+    }
+#endif
 
     // move assignment
+#if ENABLE_DEFAULT_IMPLEMENTATION
     constexpr Pair<KeyType, ValueType>& operator = (Pair<KeyType, ValueType>&& pair) noexcept = default;
-    //constexpr Pair<KeyType, ValueType>& operator = (Pair<KeyType, ValueType>&& pair) noexcept
-    //{
-    //    first = std::move(pair.first);
-    //    second = std::move(pair.second);
-    //    return *this;
-    //}
+#else
+    constexpr Pair<KeyType, ValueType>& operator = (Pair<KeyType, ValueType>&& pair) noexcept
+    {
+        first = std::move(pair.first);
+        second = std::move(pair.second);
+        return *this;
+    }
+#endif
 
     KeyType first;
     ValueType second;
 };
 
+// is_trivially_copyable_v is wierd... among different compilers...
+#if ENABLE_DEFAULT_IMPLEMENTATION
 static_assert(std::is_trivially_copyable_v<Pair<int, int>>);
+#endif
