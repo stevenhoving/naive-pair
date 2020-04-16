@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Steven Hoving
+# Copyright (c) 2019 - 2020 Steven Hoving
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,26 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 project(naive-pair)
-
-list(APPEND CMAKE_MODULE_PATH
-  "${CMAKE_SOURCE_DIR}/cmake"
-)
 
 include(CTest)
 enable_testing()
 
 if(NOT DEFINED MSVC OR MSVC_VERSION LESS 1916)
-  message(FATAL_ERROR "naive-pair currently only builds with visual studio 2017 15.9 for now.")
+  message(FATAL_ERROR "naive-pair currently only builds with visual studio 2017 15.9 or higher for now.")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
-add_compile_options(/WX) # treat warnings as errors.
+#add_compile_options(/WX) # treat warnings as errors.
 add_compile_options(/permissive-) # vs conformance mode.
 add_compile_options(/Zc:rvalueCast)
 add_compile_options(/Zc:ternary)
@@ -45,6 +41,7 @@ add_compile_options(/Zc:referenceBinding)
 add_compile_options(/Oi) # Enable intrinsic functions
 add_compile_options(/Ot) # Favor fast code
 add_compile_options(/GL) # Whole program optimalisation
+
 ###############################################################################
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -53,9 +50,14 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(dep)
 
-# quick and dirty header only cmake target
-add_library(naive-pair INTERFACE)
-add_library(naive-pair::naive-pair ALIAS naive-pair)
+add_library(naive-pair STATIC
+    include/naive-pair/naive-pair.h
+    include/naive-pair/naive-pair-default.h
+    include/naive-pair/naive-pair-pod.h
+    include/naive-pair/naive-pair-default-src.cpp
+    include/naive-pair/naive-pair-default-src.h
+    include/naive-pair/naive-pair-default-empty-base.h
+)
 
 target_include_directories(naive-pair
   INTERFACE
@@ -63,14 +65,4 @@ target_include_directories(naive-pair
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-set(NAIVE_PAIR_SOURCE
-    include/naive-pair/naive-pair.h
-)
-add_custom_target(naive-pair-ide
-  SOURCES
-    ${NAIVE_PAIR_SOURCE}
-)
-
 add_subdirectory(benchmark)
-
-# no install directive yet...

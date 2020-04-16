@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Steven Hoving
+ * Copyright (c) 2019 - 2020 Steven Hoving
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,92 +20,74 @@
  * SOFTWARE.
  */
 
-
-/**
- * Inspired by https://www.reddit.com/r/cpp/comments/ar4ghs/stdpair_disappointing_performance/
- */
-
 #pragma once
 
-#define ENABLE_DEFAULT_IMPLEMENTATION 1
-
+/* To do:
+ * 1. For now we always assume that KeyType and ValueType are noexcept types. Add a constrain for
+ *    that.
+ */
 template<class KeyType, class ValueType>
-struct Pair
+struct naive_pair
 {
     using first_type = KeyType;
     using second_type = ValueType;
 
-    constexpr Pair() noexcept = default;
-    ~Pair() noexcept = default;
+    constexpr naive_pair() noexcept = default;
+    ~naive_pair() noexcept = default;
 
-    //constexpr Pair(const KeyType &key, const ValueType &value) noexcept
-    //    : first(key)
-    //    , second(value)
-    //{}
-
-    constexpr Pair(KeyType key, ValueType value) noexcept
+    /* Questions:
+     * 1. Is this a constructor that assumes that KeyType and ValueType are move constructible?
+     * 2. Should I add a constrain for that? And add a constructor that uses KeyType and ValueType
+     *    const ref when this constrain is not met?
+     */
+    constexpr naive_pair(KeyType key, ValueType value) noexcept
         : first(std::move(key))
         , second(std::move(value))
-    {}
+    {
+    }
 
+    /* Questions:
+     * 1. Is this the correct way to create a rvalue constructor for this class?
+     */
     template<class T1, class T2>
-    constexpr Pair(T1&& key, T2&& value) noexcept
+    constexpr naive_pair(T1 &&key, T2 &&value) noexcept
         : first(std::forward<T1>(key))
         , second(std::forward<T2>(value))
     {}
 
-    // copy
-#if ENABLE_DEFAULT_IMPLEMENTATION
-    constexpr Pair(const Pair<KeyType, ValueType>& pair) noexcept = default;
-#else
-    constexpr Pair(const Pair<KeyType, ValueType>& pair) noexcept
+    constexpr naive_pair(const naive_pair &pair) noexcept
         : first(pair.first)
         , second(pair.second)
-    {}
-#endif
+    {
+    }
 
-    // copy assignment
-#if ENABLE_DEFAULT_IMPLEMENTATION
-    constexpr Pair<KeyType, ValueType> &operator = (const Pair<KeyType, ValueType>& pair) noexcept = default;
-#else
-    constexpr Pair<KeyType, ValueType> &operator = (const Pair<KeyType, ValueType>& pair) noexcept
+    constexpr naive_pair &operator = (const naive_pair &pair) noexcept
     {
         first = pair.first;
         second = pair.second;
         return *this;
     }
-#endif
 
-    // move
-#if ENABLE_DEFAULT_IMPLEMENTATION
-    constexpr Pair(Pair<KeyType, ValueType>&& pair) noexcept = default;
-#else
-    //constexpr Pair(Pair<KeyType, ValueType>&& pair) noexcept
-    template<typename T1, typename T2>
-    constexpr Pair(Pair<T1, T2>&& pair) noexcept
-        : first(std::forward<T1>(pair.first))
-        , second(std::forward<T2>(pair.second))
+    /* Questions:
+     * 1. Should I use std::exchange here for when both KeyType and ValueType are move
+     *    constructible? (add a constrain for that)
+     *
+     */
+    constexpr naive_pair(naive_pair &&pair) noexcept
+        : first(std::forward<KeyType>(pair.first))
+        , second(std::forward<ValueType>(pair.second))
     {
     }
-#endif
 
-    // move assignment
-#if ENABLE_DEFAULT_IMPLEMENTATION
-    constexpr Pair<KeyType, ValueType>& operator = (Pair<KeyType, ValueType>&& pair) noexcept = default;
-#else
-    constexpr Pair<KeyType, ValueType>& operator = (Pair<KeyType, ValueType>&& pair) noexcept
+    /* See question for the move constructor.
+     */
+    constexpr naive_pair &operator = (naive_pair &&pair) noexcept
     {
         first = std::move(pair.first);
         second = std::move(pair.second);
         return *this;
     }
-#endif
 
     KeyType first;
     ValueType second;
 };
-
-// is_trivially_copyable_v is wierd... among different compilers...
-#if ENABLE_DEFAULT_IMPLEMENTATION
-static_assert(std::is_trivially_copyable_v<Pair<int, int>>);
-#endif

@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Steven Hoving
+# Copyright (c) 2019 - 2020 Steven Hoving
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@ add_benchmark_suite(
   TARGET
     benchmark_naive-pair
   SOURCES
-    benchmark_pair.cpp
-#  INCLUDES
-#    ${CMAKE_CURRENT_BINARY_DIR}
+    benchmark_vector_pair.cpp
+    #benchmark_basic_string_pair.cpp # disabled for now as using a basic_string as container is... yea... what is it?
+    benchmark_fixture.h
   LIBRARIES
     naive-pair
 )
