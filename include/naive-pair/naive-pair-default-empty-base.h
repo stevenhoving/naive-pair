@@ -25,7 +25,7 @@
 class empty_base {};
 
 template<class KeyType, class ValueType>
-struct pair_default_empty_base : empty_base
+struct pair_default_empty_base final : empty_base
 {
     using first_type = KeyType;
     using second_type = ValueType;
